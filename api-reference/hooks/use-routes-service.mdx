@@ -1,0 +1,214 @@
+---
+title: 'useRoutesService'
+description: 'Access a memoized RoutesService instance'
+---
+
+## Overview
+
+The `useRoutesService` hook is a wrapper component that provides access to the RoutesService from the core Eco SDK.
+
+For detailed information about the available methods and properties, refer to the [RoutesService documentation](https://github.com/eco/toolkit/blob/main/packages/sdk/src/routes/RoutesService.ts).
+
+## Basic Usage
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function MyComponent() {
+  const routesService = useRoutesService();
+  
+  // Use the routesService instance
+  const supportedChains = routesService.supportedChainIds;
+  
+  return (
+    <div>
+      <h2>Supported Chains</h2>
+      <ul>
+        {supportedChains.map(chainId => (
+          <li key={chainId}>{chainId}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+## Examples
+
+### Creating a Simple Intent
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function IntentCreator() {
+  const routesService = useRoutesService();
+  
+  const createIntent = () => {
+    try {
+      const intent = routesService.createSimpleIntent({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingTokenLimit: BigInt('1000000000'),
+        amount: BigInt('500000000'),
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      console.log('Created intent:', intent);
+    } catch (error) {
+      console.error('Failed to create intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={createIntent}>
+      Create Intent
+    </button>
+  );
+}
+```
+
+### Getting Protocol Contract Address
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function ContractInfo() {
+  const routesService = useRoutesService();
+  
+  const getContractAddress = (chainId: number) => {
+    try {
+      const intentSourceAddress = routesService.getProtocolContractAddress(chainId, 'IntentSource');
+      console.log(`IntentSource address on chain ${chainId}:`, intentSourceAddress);
+    } catch (error) {
+      console.error('Failed to get contract address:', error);
+    }
+  };
+  
+  return (
+    <div>
+      <button onClick={() => getContractAddress(1)}>Get Ethereum IntentSource</button>
+      <button onClick={() => getContractAddress(137)}>Get Polygon IntentSource</button>
+    </div>
+  );
+}
+```
+
+### Checking Supported Chains
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function ChainSelector() {
+  const routesService = useRoutesService();
+  const supportedChains = routesService.supportedChainIds;
+  
+  return (
+    <div>
+      <h3>Supported Chains</h3>
+      <select>
+        {supportedChains.map(chainId => (
+          <option key={chainId} value={chainId}>
+            Chain {chainId}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+```
+
+## Advanced Usage
+
+### Creating Custom Intents
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function CustomIntentCreator() {
+  const routesService = useRoutesService();
+  
+  const createCustomIntent = () => {
+    try {
+      const intent = routesService.createIntent({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        calls: [
+          {
+            target: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+            data: '0x...',
+            value: BigInt(0),
+          }
+        ],
+        callTokens: [
+          {
+            token: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+            amount: BigInt('1000000000'),
+          }
+        ],
+        tokens: [
+          {
+            token: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+            amount: BigInt('500000000'),
+          }
+        ],
+        prover: 'HyperProver',
+      });
+      
+      console.log('Created custom intent:', intent);
+    } catch (error) {
+      console.error('Failed to create custom intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={createCustomIntent}>
+      Create Custom Intent
+    </button>
+  );
+}
+```
+
+### Creating Native Send Intents
+
+```tsx
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function NativeSendIntentCreator() {
+  const routesService = useRoutesService();
+  
+  const createNativeSendIntent = () => {
+    try {
+      const intent = routesService.createNativeSendIntent({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        amount: BigInt('1000000000000000000'), // 1 ETH
+        limit: BigInt('2000000000000000000'), // 2 ETH
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      console.log('Created native send intent:', intent);
+    } catch (error) {
+      console.error('Failed to create native send intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={createNativeSendIntent}>
+      Create Native Send Intent
+    </button>
+  );
+}
+```
+
+## Related
+
+- [usePublishIntent Hook](/api-reference/hooks/use-publish-intent)
+- [useOpenQuotingClient Hook](/api-reference/hooks/use-open-quoting-client)
+- [Setup Guide](/essentials/setup)
+- [Configuration](/essentials/configuration) 

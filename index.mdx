@@ -1,71 +1,112 @@
 ---
-title: Introduction
-description: "Welcome to the home of your new documentation"
+title: What is Eco React SDK?
+description: "A React SDK for the Eco protocol"
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.png"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/hero-dark.png"
-  alt="Hero Dark"
-/>
+## What is Eco React SDK?
 
-## Setting up
+The Eco React SDK provides a seamless way to integrate cross-chain intent creation and publishing into your React applications.
 
-The first step to world-class documentation is setting up your editing environments.
+## Key Features
 
 <CardGroup cols={2}>
   <Card
-    title="Edit Your Docs"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/quickstart"
+    title="Simple Intent Publishing"
+    icon="rocket"
+    href="/api-reference/hooks/use-publish-intent"
   >
-    Get your docs set up locally for easy development
+    Create, quote, and publish intents in a single operation with our comprehensive hook
   </Card>
   <Card
-    title="Preview Changes"
-    icon="image"
-    href="https://mintlify.com/docs/development"
+    title="Wagmi Integration"
+    icon="link"
+    href="/essentials/setup"
   >
-    Preview your changes before you push to make sure they're perfect
-  </Card>
-</CardGroup>
-
-## Make it yours
-
-Update your docs to your brand and add valuable content for the best user conversion.
-
-<CardGroup cols={2}>
-  <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
-  >
-    Customize your docs to your company's colors and brands
+    Seamlessly integrates with your existing Wagmi setup for wallet connections and chain management
   </Card>
   <Card
-    title="Reference APIs"
+    title="Cross-Chain Support"
+    icon="globe"
+    href="/essentials/configuration"
+  >
+    Support for major chains including Ethereum, Polygon, Optimism, Base, Arbitrum, BSC, and Avalanche
+  </Card>
+  <Card
+    title="TypeScript First"
     icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
+    href="/api-reference/types/publish-intent-result"
   >
-    Automatically generate endpoints from an OpenAPI spec
-  </Card>
-  <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/content/components/accordions"
-  >
-    Build interactive features and designs to guide your users
-  </Card>
-  <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/customers"
-  >
-    Check out our showcase of our favorite documentation
+    Full TypeScript support with comprehensive type definitions for better developer experience
   </Card>
 </CardGroup>
+
+## Quick Start
+
+Get up and running with the Eco React SDK in minutes.
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/essentials/installation"
+  >
+    Install the SDK and its peer dependencies
+  </Card>
+  <Card
+    title="Setup"
+    icon="gear"
+    href="/essentials/setup"
+  >
+    Configure the EcoProvider and start using hooks
+  </Card>
+  <Card
+    title="First Intent"
+    icon="play"
+    href="/quickstart"
+  >
+    Create and publish your first cross-chain intent
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api-reference/hooks/use-publish-intent"
+  >
+    Explore all available hooks and types
+  </Card>
+</CardGroup>
+
+## Example Usage
+
+```tsx
+import { usePublishIntent } from '@eco-foundation/react-sdk';
+
+function IntentPublisher() {
+  const { publishIntentAsync, isLoading, error } = usePublishIntent();
+  
+  const handlePublishIntent = async () => {
+    try {
+      const result = await publishIntentAsync({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingTokenLimit: BigInt('1000000000000000000'),
+        amount: BigInt('500000000000000000'),
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      console.log('Intent published successfully:', result);
+    } catch (error) {
+      console.error('Failed to publish intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={handlePublishIntent} disabled={isLoading}>
+      {isLoading ? 'Publishing...' : 'Publish Intent'}
+    </button>
+  );
+}
+```

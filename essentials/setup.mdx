@@ -1,0 +1,85 @@
+---
+title: 'Setup'
+description: 'Configure the Eco React SDK in your application'
+---
+
+## Provider Setup
+
+The Eco React SDK requires wrapping your application with the `EcoProvider`.
+
+<CodeGroup>
+
+```tsx App.tsx
+import { EcoProvider } from '@eco-foundation/react-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from 'wagmi';
+import { config } from './wagmi-config';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <EcoProvider
+          config={{
+            apiKey: 'your-api-key',
+            baseUrl: 'https://api.eco.org',
+          }}
+        >
+          <YourApp />
+        </EcoProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
+```
+
+```tsx wagmi-config.ts
+import { createConfig, http } from 'wagmi';
+import { mainnet, polygon, optimism, base, arbitrum, bsc, avalanche } from 'wagmi/chains';
+import { injected, walletConnect } from 'wagmi/connectors';
+
+export const config = createConfig({
+  chains: [mainnet, polygon, optimism, base, arbitrum, bsc, avalanche],
+  connectors: [
+    injected(),
+    walletConnect({ projectId: 'your-walletconnect-project-id' }),
+  ],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [optimism.id]: http(),
+    [base.id]: http(),
+    [arbitrum.id]: http(),
+    [bsc.id]: http(),
+    [avalanche.id]: http(),
+  },
+});
+```
+
+</CodeGroup>
+
+## Configuration Options
+
+The `EcoProvider` accepts a configuration object with the following properties:
+
+```tsx
+interface EcoConfig {
+  apiKey: string;        // Required: Your Eco API key
+  baseUrl?: string;      // Optional: Base URL for the Eco API
+}
+```
+
+### Required Configuration
+
+- **`apiKey`**: Your Eco API key. This is required for accessing the Eco quoting service and other API endpoints.
+
+### Optional Configuration
+
+- **`baseUrl`**: The base URL for the Eco API. Defaults to `https://api.eco.org` for production.
+
+
+## Next Steps
+
+After setup, you can start using the SDK hooks. See the [Quickstart](/quickstart) guide for your first intent, or explore the [API Reference](/api-reference/hooks/use-publish-intent) for detailed documentation. 

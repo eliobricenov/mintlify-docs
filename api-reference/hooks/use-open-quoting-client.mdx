@@ -1,0 +1,161 @@
+---
+title: 'useOpenQuotingClient'
+description: 'Access a memoized OpenQuotingClient instance'
+---
+
+## Overview
+
+The `useOpenQuotingClient` hook is a wrapper component that provides access to the OpenQuotingClient from the core Eco SDK.
+
+
+For detailed information about the available methods and properties, refer to the [OpenQuotingClient documentation](https://github.com/eco/toolkit/blob/main/packages/sdk/src/quotes/OpenQuotingClient.ts).
+
+## Basic Usage
+
+```tsx
+import { useOpenQuotingClient } from '@eco-foundation/react-sdk';
+
+function QuoteRequester() {
+  const openQuotingClient = useOpenQuotingClient();
+  
+  const requestQuotes = async (intent) => {
+    try {
+      const quotes = await openQuotingClient.requestQuotesForIntent(intent);
+      console.log('Received quotes:', quotes);
+    } catch (error) {
+      console.error('Failed to request quotes:', error);
+    }
+  };
+  
+  return (
+    <button onClick={() => requestQuotes(intent)}>
+      Request Quotes
+    </button>
+  );
+}
+```
+
+## Return Value
+
+The hook returns a memoized `OpenQuotingClient` instance that provides the following methods:
+
+| Method | Parameters | Return Type | Description |
+|--------|------------|-------------|-------------|
+| `requestQuotesForIntent` | `intent: IntentType` | `Promise<SolverQuote[]>` | Requests quotes for an intent |
+
+## Examples
+
+### Requesting Quotes for an Intent
+
+```tsx
+import { useOpenQuotingClient } from '@eco-foundation/react-sdk';
+import { useRoutesService } from '@eco-foundation/react-sdk';
+
+function QuoteExample() {
+  const openQuotingClient = useOpenQuotingClient();
+  const routesService = useRoutesService();
+  
+  const requestQuotesForIntent = async () => {
+    try {
+      // First, create an intent
+      const intent = routesService.createSimpleIntent({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingTokenLimit: BigInt('1000000000'),
+        amount: BigInt('500000000'),
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      // Then, request quotes
+      const quotes = await openQuotingClient.requestQuotesForIntent(intent);
+      
+      console.log('Available quotes:', quotes);
+      
+      // Process quotes
+      quotes.forEach((quote, index) => {
+        console.log(`Quote ${index + 1}:`, {
+          solver: quote.solver,
+          fee: quote.fee,
+          gasEstimate: quote.gasEstimate,
+        });
+      });
+      
+    } catch (error) {
+      console.error('Failed to request quotes:', error);
+    }
+  };
+  
+  return (
+    <button onClick={requestQuotesForIntent}>
+      Request Quotes
+    </button>
+  );
+}
+```
+
+### Quote Structure
+
+The quotes returned by `requestQuotesForIntent` have the following structure:
+
+```tsx
+interface SolverQuote {
+  solver: string;           // Solver address
+  fee: bigint;             // Fee amount
+  gasEstimate: bigint;     // Estimated gas cost
+  // ... other quote properties
+}
+```
+
+### Selecting the Best Quote
+
+```tsx
+import { useOpenQuotingClient } from '@eco-foundation/react-sdk';
+import { selectCheapestQuote } from '@eco-foundation/routes-sdk';
+
+function BestQuoteSelector() {
+  const openQuotingClient = useOpenQuotingClient();
+  
+  const getBestQuote = async (intent) => {
+    try {
+      const quotes = await openQuotingClient.requestQuotesForIntent(intent);
+      
+      if (quotes.length === 0) {
+        console.log('No quotes available');
+        return;
+      }
+      
+      // Select the cheapest quote
+      const bestQuote = selectCheapestQuote(quotes);
+      
+      console.log('Best quote:', {
+        solver: bestQuote.solver,
+        fee: bestQuote.fee,
+        gasEstimate: bestQuote.gasEstimate,
+      });
+      
+      return bestQuote;
+    } catch (error) {
+      console.error('Failed to get best quote:', error);
+    }
+  };
+  
+  return (
+    <button onClick={() => getBestQuote(intent)}>
+      Get Best Quote
+    </button>
+  );
+}
+```
+
+
+## Related
+
+- [usePublishIntent Hook](/api-reference/hooks/use-publish-intent)
+- [useRoutesService Hook](/api-reference/hooks/use-routes-service)
+- [useEcoConfig Hook](/api-reference/hooks/use-eco-config)
+- [Setup Guide](/essentials/setup)
+- [Configuration](/essentials/configuration) 

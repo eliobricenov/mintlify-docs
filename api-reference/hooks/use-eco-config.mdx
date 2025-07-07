@@ -1,0 +1,35 @@
+---
+title: 'useEcoConfig'
+description: 'Access the Eco configuration'
+---
+
+## Overview
+
+The `useEcoConfig` hook provides access to the Eco configuration that was passed to the `EcoProvider`. This is useful for accessing API keys, base URLs, and other configuration values throughout your application.
+
+## Basic Usage
+
+```tsx
+import { useEcoConfig } from '@eco-foundation/react-sdk';
+
+function ConfigDisplay() {
+  const config = useEcoConfig();
+  
+  return (
+    <div>
+      <h3>Eco Configuration</h3>
+      <p>API Key: {config.apiKey ? 'Configured' : 'Not configured'}</p>
+      <p>Base URL: {config.baseUrl}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+The hook returns the `EcoConfig` object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `apiKey` | `string` | The Eco API key |
+| `baseUrl` | `string` | The base URL for the Eco API |

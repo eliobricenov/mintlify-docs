@@ -1,0 +1,272 @@
+---
+title: 'PublishIntentResult'
+description: 'Result type returned by usePublishIntent hook'
+---
+
+## Overview
+
+The `PublishIntentResult` type represents the successful result of publishing an intent using the `usePublishIntent` hook. It contains all the transaction details and receipts from the publishing process.
+
+## Type Definition
+
+```tsx
+export type PublishIntentResult = {
+  intentWithQuote: IntentType;
+  approvalTxHashes: string[];
+  publishTxHash: string;
+  publishReceipt: Awaited<ReturnType<typeof waitForTransactionReceipt>>;
+};
+```
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `intentWithQuote` | `IntentType` | The created intent with the applied quote |
+| `approvalTxHashes` | `string[]` | Array of approval transaction hashes |
+| `publishTxHash` | `string` | The publish transaction hash |
+| `publishReceipt` | `TransactionReceipt` | The publish transaction receipt |
+
+## Detailed Property Descriptions
+
+### intentWithQuote
+
+The `intentWithQuote` property contains the complete intent object with the selected quote applied to it. This is the final intent that was published on-chain.
+
+```tsx
+interface IntentType {
+  route: {
+    salt: string;
+    source: bigint;
+    destination: bigint;
+    inbox: string;
+    tokens: Array<{
+      token: string;
+      amount: bigint;
+    }>;
+    calls: Array<{
+      target: string;
+      data: string;
+      value: bigint;
+    }>;
+  };
+  reward: {
+    creator: string;
+    prover: string;
+    deadline: bigint;
+    nativeValue: bigint;
+    tokens: Array<{
+      token: string;
+      amount: bigint;
+    }>;
+  };
+}
+```
+
+### approvalTxHashes
+
+An array of transaction hashes for all the token approval transactions that were executed before publishing the intent. Each hash represents a separate approval transaction.
+
+```tsx
+// Example approval transaction hashes
+const approvalTxHashes = [
+  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+];
+```
+
+### publishTxHash
+
+The transaction hash of the final publish transaction that submitted the intent to the blockchain.
+
+```tsx
+// Example publish transaction hash
+const publishTxHash = "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba";
+```
+
+### publishReceipt
+
+The complete transaction receipt from the publish transaction, including block information, gas used, and event logs.
+
+```tsx
+interface TransactionReceipt {
+  blockHash: string;
+  blockNumber: bigint;
+  contractAddress: string | null;
+  cumulativeGasUsed: bigint;
+  effectiveGasPrice: bigint;
+  from: string;
+  gasUsed: bigint;
+  logs: Log[];
+  logsBloom: string;
+  status: 'success' | 'reverted';
+  to: string;
+  transactionHash: string;
+  transactionIndex: number;
+  type: string;
+}
+```
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx
+import { usePublishIntent } from '@eco-foundation/react-sdk';
+
+function IntentPublisher() {
+  const { publishIntentAsync } = usePublishIntent();
+  
+  const handlePublishIntent = async () => {
+    try {
+      const result: PublishIntentResult = await publishIntentAsync({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingTokenLimit: BigInt('1000000000'),
+        amount: BigInt('500000000'),
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      console.log('Intent published successfully!');
+      console.log('Intent:', result.intentWithQuote);
+      console.log('Approval transactions:', result.approvalTxHashes);
+      console.log('Publish transaction:', result.publishTxHash);
+      console.log('Publish receipt:', result.publishReceipt);
+    } catch (error) {
+      console.error('Failed to publish intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={handlePublishIntent}>
+      Publish Intent
+    </button>
+  );
+}
+```
+
+### Extracting Transaction Information
+
+```tsx
+function TransactionInfo({ result }: { result: PublishIntentResult }) {
+  return (
+    <div>
+      <h3>Transaction Information</h3>
+      
+      <div>
+        <h4>Approval Transactions</h4>
+        {result.approvalTxHashes.map((hash, index) => (
+          <div key={hash}>
+            <p>Approval {index + 1}: {hash}</p>
+            <a href={`https://etherscan.io/tx/${hash}`} target="_blank" rel="noopener">
+              View on Etherscan
+            </a>
+          </div>
+        ))}
+      </div>
+      
+      <div>
+        <h4>Publish Transaction</h4>
+        <p>Hash: {result.publishTxHash}</p>
+        <p>Block: {result.publishReceipt.blockNumber.toString()}</p>
+        <p>Gas Used: {result.publishReceipt.gasUsed.toString()}</p>
+        <p>Status: {result.publishReceipt.status}</p>
+        <a href={`https://etherscan.io/tx/${result.publishTxHash}`} target="_blank" rel="noopener">
+          View on Etherscan
+        </a>
+      </div>
+    </div>
+  );
+}
+```
+
+### Intent Details Display
+
+```tsx
+function IntentDetails({ result }: { result: PublishIntentResult }) {
+  const { intentWithQuote } = result;
+  
+  return (
+    <div>
+      <h3>Intent Details</h3>
+      
+      <div>
+        <h4>Route Information</h4>
+        <p>Source Chain: {intentWithQuote.route.source.toString()}</p>
+        <p>Destination Chain: {intentWithQuote.route.destination.toString()}</p>
+        <p>Inbox: {intentWithQuote.route.inbox}</p>
+        <p>Salt: {intentWithQuote.route.salt}</p>
+      </div>
+      
+      <div>
+        <h4>Reward Information</h4>
+        <p>Creator: {intentWithQuote.reward.creator}</p>
+        <p>Prover: {intentWithQuote.reward.prover}</p>
+        <p>Deadline: {new Date(Number(intentWithQuote.reward.deadline) * 1000).toLocaleString()}</p>
+        <p>Native Value: {intentWithQuote.reward.nativeValue.toString()}</p>
+      </div>
+      
+      <div>
+        <h4>Tokens</h4>
+        {intentWithQuote.reward.tokens.map((token, index) => (
+          <div key={index}>
+            <p>Token: {token.token}</p>
+            <p>Amount: {token.amount.toString()}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### Error Handling with Type Safety
+
+```tsx
+function SafeIntentPublisher() {
+  const { publishIntentAsync, isLoading, error } = usePublishIntent();
+  
+  const handlePublishIntent = async () => {
+    try {
+      const result = await publishIntentAsync({
+        creator: '0x1234567890123456789012345678901234567890',
+        originChainID: 1,
+        destinationChainID: 137,
+        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        spendingTokenLimit: BigInt('1000000000'),
+        amount: BigInt('500000000'),
+        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
+        prover: 'HyperProver',
+      });
+      
+      // TypeScript knows result is PublishIntentResult
+      if (result.publishReceipt.status === 'success') {
+        console.log('Intent published successfully!');
+        console.log('Transaction hash:', result.publishTxHash);
+      } else {
+        console.error('Transaction reverted');
+      }
+      
+    } catch (error) {
+      console.error('Failed to publish intent:', error);
+    }
+  };
+  
+  return (
+    <button onClick={handlePublishIntent} disabled={isLoading}>
+      {isLoading ? 'Publishing...' : 'Publish Intent'}
+    </button>
+  );
+}
+```
+
+## Related Types
+
+- [IntentType](/api-reference/types/intent-type) - The intent structure
+- [TransactionReceipt](/api-reference/types/transaction-receipt) - Transaction receipt structure
+- [usePublishIntent Hook](/api-reference/hooks/use-publish-intent) - Hook that returns this type 

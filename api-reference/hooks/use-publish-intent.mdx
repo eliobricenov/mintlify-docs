@@ -1,0 +1,113 @@
+---
+title: 'usePublishIntent'
+description: 'Create, quote, and publish intents in a single operation'
+---
+
+## Overview
+
+The `usePublishIntent` hook provides a comprehensive solution for creating and publishing cross-chain intents. It handles the entire flow from intent creation to on-chain publishing, including quote selection and token approvals.
+
+## Basic Usage
+
+```tsx
+import { usePublishIntent } from '@eco-foundation/react-sdk';
+import { useAccount } from 'wagmi';
+
+function IntentPublisher() {
+  const { address } = useAccount();
+  const { publishIntent, isLoading, error, data } = usePublishIntent();
+
+  const handlePublishIntent = () => {
+    if (!address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    publishIntent({
+      creator: address,
+      originChainID: 1, // Ethereum
+      destinationChainID: 137, // Polygon
+      receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C', // USDC on Polygon
+      spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C', // USDC on Ethereum
+      spendingTokenLimit: BigInt('1000000000'), // 1000 USDC (6 decimals)
+      amount: BigInt('500000000'), // 500 USDC (6 decimals)
+      recipient: address,
+      prover: 'HyperProver',
+    });
+  };
+
+  return (
+    <div>
+      <button 
+        onClick={handlePublishIntent} 
+        disabled={isLoading || !address}
+        className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+      >
+        {isLoading ? 'Publishing...' : 'Publish Intent'}
+      </button>
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 rounded">
+          <p className="text-red-800">Failed to publish intent: {error.message}</p>
+        </div>
+      )}
+      {data && (
+        <div className="mt-4 p-4 bg-green-100 rounded">
+          <p className="text-green-800">Intent published successfully!</p>
+          <p className="text-sm text-green-600">Publish transaction: {data.publishTxHash}</p>
+          <p className="text-sm text-green-600">Approval transactions: {data.approvalTxHashes.join(', ')}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Parameters
+
+### CreateSimpleIntentParams
+
+The hook accepts a `CreateSimpleIntentParams` object with the following properties:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `creator` | `Hex` | ✅ | The address of the intent creator |
+| `originChainID` | `number` | ✅ | The source chain ID |
+| `destinationChainID` | `number` | ✅ | The destination chain ID |
+| `receivingToken` | `Hex` | ✅ | The token address on the destination chain |
+| `spendingToken` | `Hex` | ✅ | The token address on the origin chain |
+| `spendingTokenLimit` | `bigint` | ✅ | The maximum amount of tokens to spend |
+| `amount` | `bigint` | ✅ | The amount of tokens to transfer |
+| `recipient` | `Hex` | ❌ | The recipient address (defaults to creator) |
+| `prover` | `"HyperProver" \| "MetaProver" \| Hex` | ❌ | The prover to use (defaults to "HyperProver") |
+| `expiryTime` | `Date` | ❌ | The expiry time for the intent |
+
+## Return Value
+
+The hook returns an object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `publishIntent` | `(params: CreateSimpleIntentParams) => void` | Function to publish intent with callback |
+| `isLoading` | `boolean` | Whether the operation is in progress |
+| `error` | `Error \| null` | Error object if the operation failed |
+| `isSuccess` | `boolean` | Whether the operation completed successfully |
+| `data` | `PublishIntentResult \| undefined` | The result data if successful |
+
+### PublishIntentResult
+
+The successful result contains:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `intentWithQuote` | `IntentType` | The created intent with applied quote |
+| `approvalTxHashes` | `string[]` | Array of approval transaction hashes |
+| `publishTxHash` | `string` | The publish transaction hash |
+| `publishReceipt` | `TransactionReceipt` | The publish transaction receipt |
+
+
+## Related
+
+- [PublishIntentResult Type](/api-reference/types/publish-intent-result)
+- [EcoConfig Type](/api-reference/types/eco-config)
+- [Setup Guide](/essentials/setup)
+- [Configuration](/essentials/configuration) 
