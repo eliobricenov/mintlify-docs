@@ -1,45 +1,8 @@
 ---
 title: What is Eco React SDK?
-description: "A React SDK for the Eco protocol"
 ---
 
-## What is Eco React SDK?
-
 The Eco React SDK provides a seamless way to integrate cross-chain intent creation and publishing into your React applications.
-
-## Key Features
-
-<CardGroup cols={2}>
-  <Card
-    title="Simple Intent Publishing"
-    icon="rocket"
-    href="/api-reference/hooks/use-publish-intent"
-  >
-    Create, quote, and publish intents in a single operation with our comprehensive hook
-  </Card>
-  <Card
-    title="Wagmi Integration"
-    icon="link"
-    href="/essentials/setup"
-  >
-    Seamlessly integrates with your existing Wagmi setup for wallet connections and chain management
-  </Card>
-  <Card
-    title="Cross-Chain Support"
-    icon="globe"
-    href="/essentials/configuration"
-  >
-    Support for major chains including Ethereum, Polygon, Optimism, Base, Arbitrum, BSC, and Avalanche
-  </Card>
-  <Card
-    title="TypeScript First"
-    icon="code"
-    href="/api-reference/types/publish-intent-result"
-  >
-    Full TypeScript support with comprehensive type definitions for better developer experience
-  </Card>
-</CardGroup>
-
 ## Quick Start
 
 Get up and running with the Eco React SDK in minutes.
@@ -67,11 +30,11 @@ Get up and running with the Eco React SDK in minutes.
     Create and publish your first cross-chain intent
   </Card>
   <Card
-    title="API Reference"
-    icon="book"
-    href="/api-reference/hooks/use-publish-intent"
+    title="Open Quoting Client"
+    icon="code"
+    href="/api-reference/hooks/use-open-quoting-client"
   >
-    Explore all available hooks and types
+    Learn how to request and manage quotes manually
   </Card>
 </CardGroup>
 
@@ -79,34 +42,52 @@ Get up and running with the Eco React SDK in minutes.
 
 ```tsx
 import { usePublishIntent } from '@eco-foundation/react-sdk';
+import { useAccount } from 'wagmi';
 
 function IntentPublisher() {
-  const { publishIntentAsync, isLoading, error } = usePublishIntent();
-  
-  const handlePublishIntent = async () => {
-    try {
-      const result = await publishIntentAsync({
-        creator: '0x1234567890123456789012345678901234567890',
-        originChainID: 1,
-        destinationChainID: 137,
-        receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
-        spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
-        spendingTokenLimit: BigInt('1000000000000000000'),
-        amount: BigInt('500000000000000000'),
-        recipient: '0xC0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C',
-        prover: 'HyperProver',
-      });
-      
-      console.log('Intent published successfully:', result);
-    } catch (error) {
-      console.error('Failed to publish intent:', error);
+  const { address } = useAccount();
+  const { publishIntent, isLoading, error, data } = usePublishIntent();
+
+  const handlePublishIntent = () => {
+    if (!address) {
+      alert('Please connect your wallet first');
+      return;
     }
+
+    publishIntent({
+      creator: address,
+      originChainID: 1, // Ethereum
+      destinationChainID: 137, // Polygon
+      receivingToken: '0xA0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C', // USDC on Polygon
+      spendingToken: '0xB0b86a33E6441b8c4C8C0C8C0C8C0C8C0C8C0C8C', // USDC on Ethereum
+      spendingTokenLimit: BigInt('1000000000'), // 1000 USDC (6 decimals)
+      amount: BigInt('500000000'), // 500 USDC (6 decimals)
+      recipient: address,
+      prover: 'HyperProver',
+    });
   };
-  
+
   return (
-    <button onClick={handlePublishIntent} disabled={isLoading}>
-      {isLoading ? 'Publishing...' : 'Publish Intent'}
-    </button>
+    <div>
+      <button 
+        onClick={handlePublishIntent} 
+        disabled={isLoading || !address}
+        className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+      >
+        {isLoading ? 'Publishing...' : 'Publish Intent'}
+      </button>
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 rounded">
+          <p className="text-red-800">Failed to publish intent: {error.message}</p>
+        </div>
+      )}
+      {data && (
+        <div className="mt-4 p-4 bg-green-100 rounded">
+          <p className="text-green-800">Intent published successfully!</p>
+          <p className="text-sm text-green-600">Publish transaction: {data.publishTxHash}</p>
+        </div>
+      )}
+    </div>
   );
 }
 ```
